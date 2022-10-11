@@ -1,0 +1,15 @@
+{
+	"authors": [
+		"jordan4ibanez"
+	],
+	"copyright": "Copyright © 2022, jordan4ibanez",
+	"dependencies": {
+		"raylib-d": "~>4.2.2"
+	},
+	"description": "Raylib bone manipulation example in D!",
+	"license": "MIT",
+	"name": "bone_wurkz",
+    "libs": [ "raylib" ],
+    "lflags-posix" : ["-L."],
+    "lflags-osx" : ["-rpath", "@executable_path/"]
+}

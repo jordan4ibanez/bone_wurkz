@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/bone_wurkz
+bone_wurkz.so
+bone_wurkz.dylib
+bone_wurkz.dll
+bone_wurkz.a
+bone_wurkz.lib
+bone_wurkz-test-*
+*.exe
+*.o
+*.obj
+*.lst
