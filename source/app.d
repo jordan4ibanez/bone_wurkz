@@ -71,6 +71,21 @@ void main() {
         }
     }
 
+    // Now get the bone sizes
+    foreach (key, ref value; boneMap) {
+        string[] proccessor = value.children;
+        // Bone must have only 1 child, else it is a root or end and cannot be deciphered
+        if (proccessor.length != 0 || proccessor.length > 1) {
+            //value.size = 1.0;
+            // writeln("fail");
+        // } else {            
+            string child = proccessor[0];
+            Vector3 selfPosition = animation.framePoses[0][value.id].translation;
+            Vector3 childPosition = animation.framePoses[0][boneMap[child].id].translation;
+            value.size =  Vector3Distance(selfPosition, childPosition);
+        }
+    }
+
     // Now there is a 2 way linkage
     foreach (key, value; boneMap){
         writeln(key, " ", value);
