@@ -2,12 +2,20 @@ import std.stdio;
 import raylib;
 import std.conv: to;
 
-void main()
-{
+struct BoneWurk {
+    string parent = null ;
+    string[] children    ;
+    uint id       =  0   ;
+    float size    =  0.0 ;
+}
+
+void main() {
+
     // call this before using raylib
     validateRaylibBinding();
+    SetTraceLogLevel(TraceLogLevel.LOG_NONE);
     InitWindow(1280, 720, "Bone Wurkz");
-    SetTargetFPS(60);
+    SetTargetFPS(60);    
 
     // Set up model
     Model model = LoadModel("assets/character.iqm");
@@ -27,23 +35,51 @@ void main()
     camera.target   = Vector3(0,  8, 0 );
     camera.up       = Vector3(0,  1, 0 );
 
-    // Turn all the bone pointers into usable values
-    uint[string] boneMap;
-    for (int i = 0; i < model.boneCount; i++) {
-        BoneInfo thisBone = model.bones[i];
+    string parseName(BoneInfo bone) {
         string boneName;
-        foreach (character; thisBone.name) {
+        foreach (character; bone.name) {
             if (character == 0) {
-            break;
+                break;
             }
             boneName ~= character;
         }
-        boneMap[boneName] = i;
+        return boneName;
     }
 
-    writeln(boneMap);
+    // Turn all the bone pointers into usable values
+    BoneWurk[string] boneMap;
+    for (int i = 0; i < model.boneCount; i++) {
+        
+        BoneInfo thisBone = model.bones[i];
+
+        string parentName = null;
+
+        // Create a linkage to parent
+        if (thisBone.parent >= 0) {
+            BoneInfo parentBone = model.bones[thisBone.parent];
+            parentName = parseName(parentBone);
+        }
+
+        boneMap[parseName(thisBone)] = BoneWurk(parentName,[],i,0);
+    }
+
+    // Now must iterate back into that to assign children
+    foreach (key, value; boneMap) {
+        if (value.parent) {
+            // writeln("my parent is ", value.parent);
+            boneMap[value.parent].children ~= key;
+        }
+    }
+
+    // Now there is a 2 way linkage
+    foreach (key, value; boneMap){
+        writeln(key, " ", value);
+    }
+
+    // writeln(boneMap);
 
     // Inlined api function
+    /*
     void setRotation(Vector3 newRotation, string bone) {
         Transform* animationCell = &animation.framePoses[0][boneMap[bone]];
         Quaternion goal = QuaternionFromEuler(newRotation.x, newRotation.y, newRotation.z);
@@ -67,10 +103,26 @@ void main()
     float speed = 0.05;
     
 
-    while (!WindowShouldClose()) {
+    
+    */
+    while (WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(Colors.RAYWHITE);
 
+        /*
+        // Begin procedural animation
+        if (increase) {
+            accumulator += speed;
+            increase = accumulator < 3.14 ? true : false;
+        } else {
+            accumulator -= speed;
+            increase = accumulator > -3.14 ? false : true;
+        }
+
+
+        setRotation(Vector3(0, (DEG2RAD * 180) + (-accumulator), 0), "Body");
+
+        /*
         if (IsKeyPressed(KeyboardKey.KEY_R)) {
             rotation = !rotation;
         }
@@ -81,15 +133,7 @@ void main()
             head = !head;
         }
 
-        // Begin procedural animation
-        if (increase) {
-            accumulator += speed;
-            increase = accumulator < 1.0 ? true : false;
-        } else {
-            accumulator -= speed;
-            increase = accumulator > -1.0 ? false : true;
-        }
-
+        
         // Limbs
         if (rotation) {
             setRotation(Vector3( accumulator + (DEG2RAD * 180),0,0), "Leg_Right");
@@ -115,8 +159,10 @@ void main()
         if (rotation && head) {
             setRotation(Vector3(0, (accumulator * (3.14 / 2.0)) + (DEG2RAD * 180), 0), "Head");
         }
+        
 
         updateAnimation();
+        */
         
 
         BeginMode3D(camera);
@@ -126,9 +172,11 @@ void main()
         EndMode3D();
 
         DrawText("This is a procedurally generated animation!", 0, 0, 28, Colors.BLACK);
+        /*
         DrawText(("Press R to toggle rotation. Rotation is " ~ to!string(rotation ? "on" : "off")).ptr, 0, 30, 28, Colors.BLACK);
         DrawText(("Press P to toggle position. Position is " ~ to!string(position ? "on" : "off")).ptr, 0, 60, 28, Colors.BLACK);
         DrawText(("Press H to toggle the head. Head is " ~ to!string(head ? "on" : "off")).ptr, 0, 90, 28, Colors.BLACK);
+        */
         EndDrawing();
     }
     CloseWindow();
