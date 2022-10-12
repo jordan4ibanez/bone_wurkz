@@ -1,6 +1,7 @@
 import std.stdio;
 import raylib;
 import std.conv: to;
+import std.math;
 
 struct BoneWurk {
     string parent = null ;
@@ -75,10 +76,10 @@ void main() {
     foreach (key, ref value; boneMap) {
         string[] proccessor = value.children;
         // Bone must have only 1 child, else it is a root or end and cannot be deciphered
-        if (proccessor.length != 0 || proccessor.length > 1) {
-            //value.size = 1.0;
+        if (proccessor.length == 0 || proccessor.length > 1) {
+            value.size = 1.0;
             // writeln("fail");
-        // } else {            
+        } else {            
             string child = proccessor[0];
             Vector3 selfPosition = animation.framePoses[0][value.id].translation;
             Vector3 childPosition = animation.framePoses[0][boneMap[child].id].translation;
@@ -94,14 +95,13 @@ void main() {
     // writeln(boneMap);
 
     // Inlined api function
-    /*
     void setRotation(Vector3 newRotation, string bone) {
-        Transform* animationCell = &animation.framePoses[0][boneMap[bone]];
+        Transform* animationCell = &animation.framePoses[0][boneMap[bone].id];
         Quaternion goal = QuaternionFromEuler(newRotation.x, newRotation.y, newRotation.z);
         animationCell.rotation = goal;
     }
     void setPosition(Vector3 newPosition, string bone) {
-        animation.framePoses[0][boneMap[bone]].translation = newPosition;
+        animation.framePoses[0][boneMap[bone].id].translation = newPosition;
     }
     void updateAnimation() {
         UpdateModelAnimation(model, animation[0], 0);
@@ -119,25 +119,25 @@ void main() {
     
 
     
-    */
-    while (WindowShouldClose()) {
+
+    while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(Colors.RAYWHITE);
 
-        /*
+        
         // Begin procedural animation
         if (increase) {
             accumulator += speed;
-            increase = accumulator < 3.14 ? true : false;
+            increase = accumulator < 1 ? true : false;
         } else {
             accumulator -= speed;
-            increase = accumulator > -3.14 ? false : true;
+            increase = accumulator > -1 ? false : true;
         }
 
 
-        setRotation(Vector3(0, (DEG2RAD * 180) + (-accumulator), 0), "Body");
+        // setRotation(Vector3(0, (DEG2RAD * 180) + (-accumulator), 0), "Body");
 
-        /*
+        
         if (IsKeyPressed(KeyboardKey.KEY_R)) {
             rotation = !rotation;
         }
@@ -177,21 +177,38 @@ void main() {
         
 
         updateAnimation();
-        */
+        
         
 
         BeginMode3D(camera);
         {
             DrawModel(model, Vector3(0,0,0), 1, Color(255,255,255,255));
+
+            foreach (key, wurkedBone; boneMap) {
+                Transform transform = animation.framePoses[0][wurkedBone.id];
+                Vector3 translation = transform.translation;
+                // ^ you would add the base position to that ^                
+
+                Vector3 direction = Vector3RotateByQuaternion(Vector3(0,1,0), transform.rotation);
+
+                // Pull the bones out, very spooky
+                translation.z += 10;
+
+                DrawSphere(translation, 0.1, Colors.RED);
+
+                DrawCylinderEx(translation, Vector3(
+                    translation.x + (direction.x * wurkedBone.size),
+                    translation.y + (direction.y * wurkedBone.size),
+                    translation.z + (direction.z * wurkedBone.size)
+                ), 0.1, 0.1, 5, Colors.BLACK);
+            }
         }
         EndMode3D();
 
         DrawText("This is a procedurally generated animation!", 0, 0, 28, Colors.BLACK);
-        /*
         DrawText(("Press R to toggle rotation. Rotation is " ~ to!string(rotation ? "on" : "off")).ptr, 0, 30, 28, Colors.BLACK);
         DrawText(("Press P to toggle position. Position is " ~ to!string(position ? "on" : "off")).ptr, 0, 60, 28, Colors.BLACK);
         DrawText(("Press H to toggle the head. Head is " ~ to!string(head ? "on" : "off")).ptr, 0, 90, 28, Colors.BLACK);
-        */
         EndDrawing();
     }
     CloseWindow();
